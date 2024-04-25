@@ -9,8 +9,8 @@ from torchvision.transforms import v2
 transform = v2.Compose(
     [
         v2.ToTensor(),
-        # Paper mentions "per-pixel mean subtraction",
-        # but I'm just using the built-in normalization
+        # Paper uses per-pixel mean subtraction
+        # I use PyTorch's normalization
         v2.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
         v2.RandomCrop(32, padding=4),
     ]
