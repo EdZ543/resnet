@@ -8,18 +8,25 @@ class ResidualBlock(nn.Module):
     as described in Figure 2 of the paper
     """
 
-    def __init__(self, feature_map_size, num_filters, filter_size, subsample=False):
+    def __init__(self, num_filters, filter_size, subsample=False):
         super().__init__()
         self.subsample = subsample
 
-        in_channels = feature_map_size * 2 if subsample else feature_map_size
-        stride = 2 if subsample else 1
-        padding = filter_size // 2
+        if subsample:
+            self.conv1 = nn.Conv2d(
+                num_filters // 2, num_filters, filter_size, 2, filter_size // 2
+            )
+        else:
+            self.conv1 = nn.Conv2d(
+                num_filters, num_filters, filter_size, 1, filter_size // 2
+            )
 
-        self.conv1 = nn.Conv2d(in_channels, num_filters, filter_size, stride, padding)
-        self.conv2 = nn.Conv2d(num_filters, num_filters, filter_size, stride, padding)
+        self.conv2 = nn.Conv2d(
+            num_filters, num_filters, filter_size, 1, filter_size // 2
+        )
+
         # The paper uses option A for the shortcut connection, I use option B
-        self.projection_shortcut = nn.Conv2d(in_channels, num_filters, 1, 2, 0)
+        self.projection_shortcut = nn.Conv2d(num_filters // 2, num_filters, 1, 2, 0)
 
     def forward(self, x):
         original_x = x
@@ -35,6 +42,7 @@ class ResidualBlock(nn.Module):
         x += original_x
 
         x = F.relu(x)
+        return x
 
 
 class ResNet(nn.Module):
@@ -44,18 +52,18 @@ class ResNet(nn.Module):
         self.conv1 = nn.Conv2d(3, 16, 3, 1, 1)
 
         # Stack of residual blocks with map size 32 and 16 filters
-        self.stack1 = nn.Sequential(*[ResidualBlock(32, 16, 3) for _ in range(n)])
+        self.stack1 = nn.Sequential(*[ResidualBlock(16, 3) for _ in range(n)])
 
         # Stack of residual blocks with map size 16 and 32 filters
         self.stack2 = nn.Sequential(
-            ResidualBlock(16, 32, 3, subsample=True),
-            *[ResidualBlock(16, 32, 3) for _ in range(n - 1)]
+            ResidualBlock(32, 3, subsample=True),
+            *[ResidualBlock(32, 3) for _ in range(n - 1)]
         )
 
         # Stack of residual blocks with map size 64 and 8 filters
         self.stack3 = nn.Sequential(
-            ResidualBlock(8, 64, 3, subsample=True),
-            *[ResidualBlock(8, 64, 3) for _ in range(n - 1)]
+            ResidualBlock(64, 3, subsample=True),
+            *[ResidualBlock(64, 3) for _ in range(n - 1)]
         )
 
         self.global_avg_pool = nn.AvgPool2d(8)
