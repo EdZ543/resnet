@@ -1,7 +1,8 @@
+"""Data loader for CIFAR-10 dataset."""
+
 import torch
-from torch.utils.data import random_split
+from torch.utils.data import random_split, DataLoader
 from torchvision import datasets, transforms
-from torch.utils.data import DataLoader
 
 transform = transforms.Compose(
     [
@@ -24,6 +25,7 @@ def get_dataloader(train, batch_size):
 
     # Create data loaders
     if train:
+        # Split data into train and validation sets
         generator = torch.Generator().manual_seed(42)
         train_data, val_data = random_split(data, [45000, 5000], generator=generator)
 

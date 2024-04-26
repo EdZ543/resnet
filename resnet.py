@@ -1,3 +1,5 @@
+"""Main ResNet model implementation."""
+
 from torch import nn
 import torch.nn.functional as F
 
@@ -29,6 +31,8 @@ class ResidualBlock(nn.Module):
         self.projection_shortcut = nn.Conv2d(num_filters // 2, num_filters, 1, 2, 0)
 
     def forward(self, x):
+        """Feed forward step"""
+
         original_x = x
         x = self.conv1(x)
         x = F.relu(x)
@@ -46,6 +50,8 @@ class ResidualBlock(nn.Module):
 
 
 class ResNet(nn.Module):
+    """ResNet model, as described in CIFAR-10 section of the paper."""
+
     def __init__(self, n):
         super().__init__()
 
@@ -70,6 +76,8 @@ class ResNet(nn.Module):
         self.fully_connected = nn.Linear(64, 10)
 
     def forward(self, x):
+        """Feed forward step"""
+
         x = self.conv1(x)
         x = F.relu(x)
         x = self.stack1(x)
