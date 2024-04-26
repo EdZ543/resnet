@@ -1,0 +1,44 @@
+{
+    "os": "macOS-10.16-x86_64-i386-64bit",
+    "python": "3.10.13",
+    "heartbeatAt": "2024-04-26T00:29:57.171821",
+    "startedAt": "2024-04-26T00:29:56.609180",
+    "docker": null,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "<python with no main file>",
+    "codePathLocal": null,
+    "git": {
+        "remote": "https://github.com/EdZ543/resnet.git",
+        "commit": "45479bf5c67fcd0f024c164dc4c27535af750739"
+    },
+    "email": "53500062+EdZ543@users.noreply.github.com",
+    "root": "/Users/eddiezhuang/Code/resnet",
+    "host": "eddies-air.lan",
+    "username": "eddiezhuang",
+    "executable": "/Users/eddiezhuang/anaconda3/bin/python",
+    "cpu_count": 8,
+    "cpu_count_logical": 8,
+    "cpu_freq": {
+        "current": 2400,
+        "min": 2400,
+        "max": 2400
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 2400,
+            "min": 2400,
+            "max": 2400
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 228.27386474609375,
+            "used": 155.13241577148438
+        }
+    },
+    "memory": {
+        "total": 16.0
+    }
+}
