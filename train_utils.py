@@ -20,6 +20,7 @@ torch.cuda.manual_seed(42)
 # Device configuration
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
+
 def make(config):
     train_dataloader, val_dataloader = get_dataloader(True, config.batch_size)
     test_dataloader = get_dataloader(False, config.batch_size)
@@ -42,7 +43,7 @@ def make(config):
         test_dataloader,
         loss_func,
         optimizer,
-        scheduler
+        scheduler,
     )
 
 
@@ -90,7 +91,8 @@ def train(model, train_loader, val_loader, loss_func, optimizer, scheduler, conf
                 accuracy = (outputs.argmax(1) == labels).float().mean()
                 wandb.log(
                     {
-                        "train/epoch": (step + 1 + (n_steps_per_epoch * epoch)) / n_steps_per_epoch,
+                        "train/epoch": (step + 1 + (n_steps_per_epoch * epoch))
+                        / n_steps_per_epoch,
                         "train/error": 1 - accuracy,
                         "train/train_loss": train_loss,
                     }
@@ -107,19 +109,26 @@ def train(model, train_loader, val_loader, loss_func, optimizer, scheduler, conf
 
         # Adjust learning rate
         scheduler.step()
-        
-        
-def model_pipeline(name, hyperparameters):
+
+
+def model_pipeline(entity, project, job_name, config):
+    settings = wandb.Settings(job_name=job_name)
 
     # tell wandb to get started
-    with wandb.init(project="resnet", config=hyperparameters, name=name):
+    with wandb.init(entity=entity, project=project, config=config, settings=settings):
         # access all HPs through wandb.config, so logging matches execution!
         config = wandb.config
 
         # make the model, data, optimizer, and scheduler
-        model, train_loader, val_loader, test_loader, loss_func, optimizer, scheduler = make(
-            config
-        )
+        (
+            model,
+            train_loader,
+            val_loader,
+            test_loader,
+            loss_func,
+            optimizer,
+            scheduler,
+        ) = make(config)
 
         # and use them to train the model
         train(model, train_loader, val_loader, loss_func, optimizer, scheduler, config)
