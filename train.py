@@ -14,4 +14,4 @@ config = dict(
     },
 )
 
-model_pipeline("resnet", "ResNet-20", config)
+model_pipeline("resnet", config)
