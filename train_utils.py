@@ -111,11 +111,10 @@ def train(model, train_loader, val_loader, loss_func, optimizer, scheduler, conf
         scheduler.step()
 
 
-def model_pipeline(entity, project, job_name, config):
-    settings = wandb.Settings(job_name=job_name)
+def model_pipeline(project, name, config):
 
     # tell wandb to get started
-    with wandb.init(entity=entity, project=project, config=config, settings=settings):
+    with wandb.init(project=project, name=name, config=config):
         # access all HPs through wandb.config, so logging matches execution!
         config = wandb.config
 
