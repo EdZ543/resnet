@@ -95,7 +95,7 @@ class ResNet(nn.Module):
             *[ResidualBlock(64, subsample=False) for _ in range(n - 1)]
         )
 
-        self.global_avg_pool = nn.AvgPool2d(8)
+        self.global_avg_pool = nn.AdaptiveAvgPool2d(1)
         self.fully_connected = nn.Linear(64, 10)
 
         # Initialize weights of fully connected layer
