@@ -1,4 +1,4 @@
-FROM pytorch/pytorch
+FROM python:3.12
 
 WORKDIR /
 
