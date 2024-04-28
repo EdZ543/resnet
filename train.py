@@ -1,6 +1,7 @@
 import torch
 from torch import nn
 from torch.optim.lr_scheduler import MultiStepLR
+from torchvision import transforms
 import wandb
 
 from dataloader import get_dataloader
@@ -16,8 +17,18 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 def make(config):
-    train_dataloader, val_dataloader = get_dataloader(True, config.batch_size)
-    test_dataloader = get_dataloader(False, config.batch_size)
+    train_transform = transforms.Compose(
+        [
+            transforms.ToTensor(),
+            # Paper uses per-pixel mean subtraction
+            # I use PyTorch's normalization
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+            transforms.RandomCrop(32, padding=4),
+        ]
+    )
+    train_dataloader, test_dataloader = get_dataloader(
+        train_transform, transforms.ToTensor(), config.batch_size
+    )
 
     model = ResNet(config.n).to(device)
 
@@ -28,12 +39,11 @@ def make(config):
         weight_decay=config.weight_decay,
         momentum=config.momentum,
     )
-    scheduler = MultiStepLR(optimizer, milestones=[91, 137], gamma=0.1)
+    scheduler = MultiStepLR(optimizer, milestones=[82, 123], gamma=0.1)
 
     return (
         model,
         train_dataloader,
-        val_dataloader,
         test_dataloader,
         loss_func,
         optimizer,
@@ -62,7 +72,7 @@ def evaluate(model, loader, loss_func):
     return loss, accuracy
 
 
-def train(model, train_loader, val_loader, loss_func, optimizer, scheduler, config):
+def train(model, train_loader, test_loader, loss_func, optimizer, scheduler, config):
     # Tell wandb to watch what the model gets up to: gradients, weights, and more!
     wandb.watch(model, loss_func, log="all", log_freq=10)
 
@@ -79,16 +89,16 @@ def train(model, train_loader, val_loader, loss_func, optimizer, scheduler, conf
             train_loss.backward()
             optimizer.step()
 
-        # Log training and validation metrics
+        # Log training and testing metrics
         train_loss, train_accuracy = evaluate(model, train_loader, loss_func)
-        val_loss, val_accuracy = evaluate(model, val_loader, loss_func)
+        test_loss, test_accuracy = evaluate(model, test_loader, loss_func)
         wandb.log(
             {
                 "epoch": epoch,
                 "train/error": 1 - train_accuracy,
                 "train/loss": train_loss,
-                "validation/error": 1 - val_accuracy,
-                "validation/loss": val_loss,
+                "test/error": 1 - test_accuracy,
+                "test/loss": test_loss,
             }
         )
 
@@ -107,7 +117,6 @@ def model_pipeline(project, config):
         (
             model,
             train_loader,
-            val_loader,
             test_loader,
             loss_func,
             optimizer,
@@ -115,15 +124,7 @@ def model_pipeline(project, config):
         ) = make(config)
 
         # and use them to train the model
-        train(model, train_loader, val_loader, loss_func, optimizer, scheduler, config)
-
-        # and test its final performance
-        _, test_accuracy = evaluate(model, test_loader, loss_func)
-        wandb.log(
-            {
-                "test/error": 1 - test_accuracy,
-            }
-        )
+        train(model, train_loader, test_loader, loss_func, optimizer, scheduler, config)
 
         # Save model weights
         model_artifact = wandb.Artifact(
@@ -148,7 +149,7 @@ if __name__ == "__main__":
         "n": 3,
         "batch_size": 128,
         "learning_rate": 0.1,
-        "epochs": 182,
+        "epochs": 164,
         "weight_decay": 0.0001,
         "momentum": 0.9,
     }

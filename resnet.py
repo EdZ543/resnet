@@ -18,8 +18,9 @@ class ResidualBlock(nn.Module):
             self.conv1 = nn.Conv2d(num_filters // 2, num_filters, 3, 2, 1)
         else:
             self.conv1 = nn.Conv2d(num_filters, num_filters, 3, 1, 1)
-
+        self.batch_norm1 = nn.BatchNorm2d(num_filters)
         self.conv2 = nn.Conv2d(num_filters, num_filters, 3, 1, 1)
+        self.batch_norm2 = nn.BatchNorm2d(num_filters)
 
         # The paper uses option A for the shortcut connection, I use option B
         self.projection_shortcut = nn.Conv2d(num_filters // 2, num_filters, 1, 2, 0)
@@ -28,8 +29,10 @@ class ResidualBlock(nn.Module):
         """Feed forward step"""
 
         out = self.conv1(x)
+        out = self.batch_norm1(out)
         out = F.relu(out)
         out = self.conv2(out)
+        out = self.batch_norm2(out)
 
         # Apply projection shortcut if input and output dimensions don't match
         if self.subsample:
