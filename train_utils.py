@@ -72,12 +72,11 @@ def train(model, train_loader, val_loader, loss_func, optimizer, scheduler, conf
     # Tell wandb to watch what the model gets up to: gradients, weights, and more!
     wandb.watch(model, loss_func, log="all", log_freq=10)
 
-    n_steps_per_epoch = math.ceil(len(train_loader.dataset) / config.batch_size)
     for epoch in range(config.epochs):
         model.train()
 
         # Train for one epoch
-        for step, (images, labels) in enumerate(train_loader):
+        for images, labels in train_loader:
             images, labels = images.to(device), labels.to(device)
 
             outputs = model(images)
@@ -86,24 +85,16 @@ def train(model, train_loader, val_loader, loss_func, optimizer, scheduler, conf
             train_loss.backward()
             optimizer.step()
 
-            # Report metrics on last batch of each epoch
-            if step + 1 == config.batch_size:
-                accuracy = (outputs.argmax(1) == labels).float().mean()
-                wandb.log(
-                    {
-                        "train/epoch": (step + 1 + (n_steps_per_epoch * epoch))
-                        / n_steps_per_epoch,
-                        "train/error": 1 - accuracy,
-                        "train/train_loss": train_loss,
-                    }
-                )
-
-        # Validate
+        # Log training and validation metrics
+        train_loss, train_accuracy = evaluate(model, train_loader, loss_func)
         val_loss, val_accuracy = evaluate(model, val_loader, loss_func)
         wandb.log(
             {
+                "epoch": epoch,
+                "train/error": 1 - train_accuracy,
+                "train/loss": train_loss,
                 "validation/error": 1 - val_accuracy,
-                "validation/train_loss": val_loss,
+                "validation/loss": val_loss,
             }
         )
 
