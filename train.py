@@ -144,7 +144,7 @@ def model_pipeline(project, config):
 if __name__ == "__main__":
     wandb.login()
 
-    config = {
+    hyperparameters = {
         "n": 3,
         "batch_size": 128,
         "learning_rate": 0.1,
@@ -153,4 +153,4 @@ if __name__ == "__main__":
         "momentum": 0.9,
     }
 
-    model_pipeline("resnet", config)
+    model_pipeline("resnet", hyperparameters)
