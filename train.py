@@ -107,7 +107,6 @@ def train(model, train_loader, test_loader, loss_func, optimizer, scheduler, con
 
 
 def model_pipeline(project, config):
-
     # tell wandb to get started
     with wandb.init(project=project, config=dict(config)) as run:
         # access all HPs through wandb.config, so logging matches execution!
@@ -135,9 +134,8 @@ def model_pipeline(project, config):
         )
 
         torch.save(model.state_dict(), "model.pth")
-
+        model_artifact.add_file("model.pth")
         wandb.save("model.pth")
-
         run.log_artifact(model_artifact)
 
 
