@@ -105,7 +105,7 @@ def train(model, train_loader, val_loader, loss_func, optimizer, scheduler, conf
 def model_pipeline(project, config):
 
     # tell wandb to get started
-    with wandb.init(project=project, config=config):
+    with wandb.init(project=project, config=dict(config)) as run:
         # access all HPs through wandb.config, so logging matches execution!
         config = wandb.config
 
@@ -124,7 +124,6 @@ def model_pipeline(project, config):
         train(model, train_loader, val_loader, loss_func, optimizer, scheduler, config)
 
         # and test its final performance
-        # Validate
         _, test_accuracy = evaluate(model, test_loader, loss_func)
         wandb.log(
             {
@@ -132,4 +131,16 @@ def model_pipeline(project, config):
             }
         )
 
-    return model
+        # Save model weights
+        model_artifact = wandb.Artifact(
+            "resnet",
+            type="model",
+            description="Residual Neural Network model trained on CIFAR-10 dataset.",
+            metadata=dict(config),
+        )
+
+        torch.save(model.state_dict(), "model.pth")
+
+        wandb.save("model.pth")
+
+        run.log_artifact(model_artifact)
