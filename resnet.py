@@ -17,7 +17,7 @@ class ResidualBlock(nn.Module):
             double the number of filters of the input
     """
 
-    def __init__(self, num_filters, subsample=False):
+    def __init__(self, num_filters, subsample):
         super().__init__()
         self.subsample = subsample
 
@@ -30,6 +30,10 @@ class ResidualBlock(nn.Module):
         self.batch_norm2 = nn.BatchNorm2d(num_filters)
 
         self.mp = nn.MaxPool2d(1, 2)
+
+        # Initialize weights of convolutional layers
+        nn.init.kaiming_normal_(self.conv1.weight, mode="fan_out", nonlinearity="relu")
+        nn.init.kaiming_normal_(self.conv2.weight, mode="fan_out", nonlinearity="relu")
 
     def increase_dim(self, x):
         """
@@ -75,22 +79,29 @@ class ResNet(nn.Module):
         self.conv1 = nn.Conv2d(3, 16, 3, 1, 1)
 
         # Stack of residual blocks with map size 32 and 16 filters
-        self.stack1 = nn.Sequential(*[ResidualBlock(16) for _ in range(n)])
+        self.stack1 = nn.Sequential(
+            *[ResidualBlock(16, subsample=False) for _ in range(n)]
+        )
 
         # Stack of residual blocks with map size 16 and 32 filters
         self.stack2 = nn.Sequential(
             ResidualBlock(32, subsample=True),
-            *[ResidualBlock(32) for _ in range(n - 1)]
+            *[ResidualBlock(32, subsample=False) for _ in range(n - 1)]
         )
 
         # Stack of residual blocks with map size 64 and 8 filters
         self.stack3 = nn.Sequential(
             ResidualBlock(64, subsample=True),
-            *[ResidualBlock(64) for _ in range(n - 1)]
+            *[ResidualBlock(64, subsample=False) for _ in range(n - 1)]
         )
 
         self.global_avg_pool = nn.AvgPool2d(8)
         self.fully_connected = nn.Linear(64, 10)
+
+        # Initialize weights of fully connected layer
+        nn.init.kaiming_normal_(
+            self.fully_connected.weight, mode="fan_out", nonlinearity="relu"
+        )
 
     def forward(self, x):
         """Feed forward step"""
