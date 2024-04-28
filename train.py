@@ -1,3 +1,7 @@
+"""
+Main training script.
+"""
+
 import torch
 from torch import nn
 from torch.optim.lr_scheduler import MultiStepLR
@@ -17,6 +21,8 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 def make(config):
+    """Create model, dataloaders, loss function, optimizer, and scheduler."""
+
     train_transform = transforms.Compose(
         [
             transforms.ToTensor(),
@@ -54,6 +60,8 @@ def make(config):
 
 
 def evaluate(model, loader, loss_func):
+    """Evaluates the model's loss and error on a dataset"""
+
     model.eval()
     loss_sum = 0.0
     with torch.inference_mode():
@@ -75,6 +83,8 @@ def evaluate(model, loader, loss_func):
 
 
 def train(model, train_loader, test_loader, loss_func, optimizer, scheduler, config):
+    """Trains the model for the specified number of epochs."""
+
     for epoch in range(config.epochs):
         model.train()
 
@@ -106,9 +116,9 @@ def train(model, train_loader, test_loader, loss_func, optimizer, scheduler, con
 
 
 def model_pipeline(project, model_name, config):
-    # tell wandb to get started
+    """Trains a model and logs artifacts and metrics."""
+
     with wandb.init(project=project, config=dict(config)) as run:
-        # access all HPs through wandb.config, so logging matches execution!
         config = wandb.config
 
         # make the model, data, optimizer, and scheduler
@@ -124,13 +134,13 @@ def model_pipeline(project, model_name, config):
         # and use them to train the model
         train(model, train_loader, test_loader, loss_func, optimizer, scheduler, config)
 
-        # Save model weights
         model_artifact = wandb.Artifact(
             model_name,
             type="model",
             metadata=dict(config),
         )
 
+        # Save model weights
         torch.save(model.state_dict(), model_name + ".pth")
         model_artifact.add_file(model_name + ".pth")
         wandb.save(model_name + ".pth")
