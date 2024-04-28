@@ -77,6 +77,7 @@ class ResNet(nn.Module):
         super().__init__()
 
         self.conv1 = nn.Conv2d(3, 16, 3, 1, 1)
+        self.batch_norm = nn.BatchNorm2d(16)
 
         # Stack of residual blocks with map size 32 and 16 filters
         self.stack1 = nn.Sequential(
@@ -108,6 +109,7 @@ class ResNet(nn.Module):
         """Feed forward step"""
 
         out = self.conv1(x)
+        out = self.batch_norm(out)
         out = F.relu(out)
         out = self.stack1(out)
         out = self.stack2(out)
