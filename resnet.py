@@ -98,7 +98,6 @@ class ResNet(nn.Module):
 
         self.global_avg_pool = nn.AdaptiveAvgPool2d(1)
         self.fully_connected = nn.Linear(64, 10)
-        self.softmax = nn.Softmax(dim=-1)
 
         # Initialize weights of fully connected layer
         nn.init.kaiming_normal_(
@@ -117,5 +116,5 @@ class ResNet(nn.Module):
         out = self.global_avg_pool(out)
         out = out.view(-1, 64)
         out = self.fully_connected(out)
-        out = self.softmax(out)
+        out = F.softmax(out, dim=-1)
         return out
