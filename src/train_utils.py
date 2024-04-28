@@ -111,11 +111,10 @@ def train(model, train_loader, val_loader, loss_func, optimizer, scheduler, conf
         scheduler.step()
 
 
-def model_pipeline(entity, project, job_name, config):
-    settings = wandb.Settings(job_name=job_name)
+def model_pipeline(project, config):
 
     # tell wandb to get started
-    with wandb.init(entity=entity, project=project, settings=settings, config=config):
+    with wandb.init(project=project, config=config):
         # access all HPs through wandb.config, so logging matches execution!
         config = wandb.config
 
@@ -141,7 +140,5 @@ def model_pipeline(entity, project, job_name, config):
                 "test/error": 1 - test_accuracy,
             }
         )
-
-        wandb.run.log_code()
 
     return model
