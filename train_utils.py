@@ -86,8 +86,8 @@ def train(model, train_loader, val_loader, loss_func, optimizer, scheduler, conf
             train_loss.backward()
             optimizer.step()
 
-            # Report metrics every 25th batch
-            if ((step + 1) % 25) == 0:
+            # Report metrics on last batch of each epoch
+            if step + 1 == config.batch_size:
                 accuracy = (outputs.argmax(1) == labels).float().mean()
                 wandb.log(
                     {
