@@ -1,0 +1,36 @@
+# This is an Anaconda project file.
+#
+# Here you can describe your project and how to run it.
+# Use `anaconda-project run` to run the project.
+# The file is in YAML format, please see http://www.yaml.org/start.html for more.
+#
+
+#
+# Set the 'name' key to name your project
+#
+name: resnet
+icon:
+description:
+commands:
+  default:
+    unix: "python train.py"
+variables: {}
+services: {}
+downloads: {}
+packages:
+- wandb
+- pytorch
+- torchvision
+- torchaudio
+channels: []
+platforms:
+- linux-64
+- osx-64
+- osx-arm64
+- win-64
+env_specs:
+  default:
+    description: Default environment spec for running commands
+    packages: []
+    channels: []
+    platforms: []
