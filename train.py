@@ -9,8 +9,8 @@ from resnet import ResNet
 
 # Ensure deterministic behavior
 torch.backends.cudnn.deterministic = True
-torch.manual_seed(42)
-torch.cuda.manual_seed(42)
+torch.manual_seed(0)
+torch.cuda.manual_seed(0)
 
 # Device configuration
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -39,7 +39,9 @@ def make(config):
         weight_decay=config.weight_decay,
         momentum=config.momentum,
     )
-    scheduler = MultiStepLR(optimizer, milestones=[82, 123], gamma=0.1)
+    scheduler = MultiStepLR(
+        optimizer, milestones=config.lr_milestones, gamma=config.lr_gamma
+    )
 
     return (
         model,
@@ -55,7 +57,7 @@ def evaluate(model, loader, loss_func):
     model.eval()
     loss_sum = 0.0
     with torch.inference_mode():
-        correct = 0
+        wrong = 0
         for images, labels in loader:
             images, labels = images.to(device), labels.to(device)
 
@@ -64,18 +66,15 @@ def evaluate(model, loader, loss_func):
             loss_sum += loss_func(outputs, labels) * labels.size(0)
 
             _, predicted_indices = torch.max(outputs.data, 1)
-            correct += (predicted_indices == labels).sum().item()
+            wrong += (predicted_indices != labels).sum().item()
 
     loss = loss_sum / len(loader.dataset)
-    accuracy = correct / len(loader.dataset)
+    error = wrong / len(loader.dataset)
 
-    return loss, accuracy
+    return loss, error
 
 
 def train(model, train_loader, test_loader, loss_func, optimizer, scheduler, config):
-    # Tell wandb to watch what the model gets up to: gradients, weights, and more!
-    wandb.watch(model, loss_func, log="all", log_freq=10)
-
     for epoch in range(config.epochs):
         model.train()
 
@@ -90,14 +89,14 @@ def train(model, train_loader, test_loader, loss_func, optimizer, scheduler, con
             optimizer.step()
 
         # Log training and testing metrics
-        train_loss, train_accuracy = evaluate(model, train_loader, loss_func)
-        test_loss, test_accuracy = evaluate(model, test_loader, loss_func)
+        train_loss, train_error = evaluate(model, train_loader, loss_func)
+        test_loss, test_error = evaluate(model, test_loader, loss_func)
         wandb.log(
             {
                 "epoch": epoch,
-                "train/error": 1 - train_accuracy,
+                "train/error": train_error,
                 "train/loss": train_loss,
-                "test/error": 1 - test_accuracy,
+                "test/error": test_error,
                 "test/loss": test_loss,
             }
         )
@@ -106,7 +105,7 @@ def train(model, train_loader, test_loader, loss_func, optimizer, scheduler, con
         scheduler.step()
 
 
-def model_pipeline(project, config):
+def model_pipeline(project, model_name, config):
     # tell wandb to get started
     with wandb.init(project=project, config=dict(config)) as run:
         # access all HPs through wandb.config, so logging matches execution!
@@ -127,15 +126,14 @@ def model_pipeline(project, config):
 
         # Save model weights
         model_artifact = wandb.Artifact(
-            "resnet",
+            model_name,
             type="model",
-            description="Residual Neural Network model trained on CIFAR-10 dataset.",
             metadata=dict(config),
         )
 
-        torch.save(model.state_dict(), "model.pth")
-        model_artifact.add_file("model.pth")
-        wandb.save("model.pth")
+        torch.save(model.state_dict(), model_name + ".pth")
+        model_artifact.add_file(model_name + ".pth")
+        wandb.save(model_name + ".pth")
         run.log_artifact(model_artifact)
 
 
@@ -150,6 +148,8 @@ if __name__ == "__main__":
         "epochs": 164,
         "weight_decay": 0.0001,
         "momentum": 0.9,
+        "lr_milestones": [82, 123],
+        "lr_gamma": 0.1,
     }
 
-    model_pipeline("resnet", hyperparameters)
+    model_pipeline("resnet", "resnet", hyperparameters)
