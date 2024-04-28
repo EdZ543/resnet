@@ -26,8 +26,7 @@ def make(config):
     train_transform = transforms.Compose(
         [
             transforms.ToTensor(),
-            # Paper uses per-pixel mean subtraction
-            # I use PyTorch's normalization
+            # Deviation from paper, as they use per-pixel mean subtraction
             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
             transforms.RandomCrop(32, padding=4),
         ]
