@@ -35,7 +35,7 @@ def make(config, device):
 
     model = ResNet(config.n).to(device)
 
-    loss_func = nn.CrossEntropyLoss()
+    loss_func = torch.nn.NLLLoss()
     optimizer = torch.optim.SGD(
         model.parameters(),
         lr=config.learning_rate,
@@ -170,8 +170,9 @@ def main():
     project = "resnet"
     model_name = "resnet"
     model_path = "./weights/resnet.pth"
+
     config = {
-        "n": 7,
+        "n": 3,
         "batch_size": 128,
         "learning_rate": 0.1,
         "epochs": 164,
