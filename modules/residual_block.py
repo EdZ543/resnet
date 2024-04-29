@@ -22,18 +22,20 @@ class ResidualBlock(nn.Module):
         self.subsample = subsample
 
         if subsample:
-            self.conv1 = nn.Conv2d(
-                num_filters // 2,
-                num_filters,
-                kernel_size=3,
-                stride=2,
-                padding=1,
-                bias=False,
-            )
+            num_filters_in = num_filters // 2
+            stride_in = 2
         else:
-            self.conv1 = nn.Conv2d(
-                num_filters, num_filters, kernel_size=3, stride=1, padding=1, bias=False
-            )
+            num_filters_in = num_filters
+            stride_in = 1
+
+        self.conv1 = nn.Conv2d(
+            num_filters_in,
+            num_filters,
+            kernel_size=3,
+            stride=stride_in,
+            padding=1,
+            bias=False,
+        )
         self.batch_norm1 = nn.BatchNorm2d(num_filters)
         self.conv2 = nn.Conv2d(
             num_filters, num_filters, kernel_size=3, stride=1, padding=1, bias=False
