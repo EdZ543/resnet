@@ -42,9 +42,13 @@ class ResidualBlock(nn.Module):
 
         self.mp = nn.MaxPool2d(1, 2)
 
-        # Initialize weights of convolutional layers
-        nn.init.kaiming_normal_(self.conv1.weight, mode="fan_out", nonlinearity="relu")
-        nn.init.kaiming_normal_(self.conv2.weight, mode="fan_out", nonlinearity="relu")
+        # Initialize weights
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight, mode="fan_out", nonlinearity="relu")
+            elif isinstance(m, nn.BatchNorm2d):
+                nn.init.constant_(m.weight, 1)
+                nn.init.constant_(m.bias, 0)
 
     def increase_dim(self, x):
         """
@@ -87,7 +91,9 @@ class ResNet(nn.Module):
     def __init__(self, n):
         super().__init__()
 
-        self.conv1 = nn.Conv2d(3, 16, kernel_size=3, stride=1, padding=1, bias=False)
+        self.init_conv = nn.Conv2d(
+            3, 16, kernel_size=3, stride=1, padding=1, bias=False
+        )
         self.batch_norm = nn.BatchNorm2d(16)
 
         # Stack of residual blocks with map size 32 and 16 filters
@@ -101,7 +107,7 @@ class ResNet(nn.Module):
             *[ResidualBlock(32, subsample=False) for _ in range(n - 1)]
         )
 
-        # Stack of residual blocks with map size 64 and 8 filters
+        # Stack of residual blocks with map size 8 and 64 filters
         self.stack3 = nn.Sequential(
             ResidualBlock(64, subsample=True),
             *[ResidualBlock(64, subsample=False) for _ in range(n - 1)]
@@ -118,7 +124,7 @@ class ResNet(nn.Module):
     def forward(self, x):
         """Feed forward step"""
 
-        out = self.conv1(x)
+        out = self.init_conv(x)
         out = self.batch_norm(out)
         out = F.relu(out)
         out = self.stack1(out)
