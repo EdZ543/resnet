@@ -23,7 +23,12 @@ def make(config, device):
             transforms.RandomCrop(32, padding=4),
         ]
     )
-    test_transform = transforms.ToTensor()
+    test_transform = transforms.Compose(
+        [
+            transforms.ToTensor(),
+            transforms.Normalize(config.mean, config.std),
+        ]
+    )
 
     train_dataloader = get_dataloader(train_transform, config.batch_size)
     test_dataloader = get_dataloader(test_transform, config.batch_size)
@@ -174,8 +179,8 @@ def main():
         "momentum": 0.9,
         "lr_milestones": [82, 123],
         "lr_gamma": 0.1,
-        "mean": [0.5, 0.5, 0.5],
-        "std": [0.5, 0.5, 0.5],
+        "mean": [0.4914, 0.4822, 0.4465],
+        "std": [0.247, 0.243, 0.261],
     }
 
     model_pipeline(project, model_name, model_path, config, device)
