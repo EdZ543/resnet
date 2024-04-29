@@ -105,7 +105,7 @@ def train(
                 "epoch": epoch,
                 "train/error": train_error,
                 "train/loss": train_loss,
-                "test/error": test_error / 5,
+                "test/error": test_error,
                 "test/loss": test_loss,
             }
         )
