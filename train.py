@@ -30,8 +30,8 @@ def make(config, device):
         ]
     )
 
-    train_dataloader = get_dataloader(train_transform, config.batch_size)
-    test_dataloader = get_dataloader(test_transform, config.batch_size)
+    train_dataloader = get_dataloader(True, train_transform, config.batch_size)
+    test_dataloader = get_dataloader(False, test_transform, config.batch_size)
 
     model = ResNet(config.n).to(device)
 
@@ -171,7 +171,7 @@ def main():
     model_name = "resnet"
     model_path = "./weights/resnet.pth"
     config = {
-        "n": 3,
+        "n": 7,
         "batch_size": 128,
         "learning_rate": 0.1,
         "epochs": 164,
@@ -179,8 +179,8 @@ def main():
         "momentum": 0.9,
         "lr_milestones": [82, 123],
         "lr_gamma": 0.1,
-        "mean": [0.4914, 0.4822, 0.4465],
-        "std": [0.247, 0.243, 0.261],
+        "mean": [0.4918, 0.4918, 0.4918],
+        "std": [0.2469, 0.2469, 0.2469],
     }
 
     model_pipeline(project, model_name, model_path, config, device)
