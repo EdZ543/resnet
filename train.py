@@ -9,7 +9,7 @@ from torchvision import transforms
 import wandb
 
 from data import get_dataloader
-from modules.resnet import ResNet
+from modules import ResNet
 
 
 def make(config, device):
@@ -18,6 +18,7 @@ def make(config, device):
     train_transform = transforms.Compose(
         [
             transforms.ToTensor(),
+            transforms.Normalize(config.mean, config.std),
             transforms.RandomHorizontalFlip(),
             transforms.RandomCrop(32, padding=4),
         ]
@@ -173,6 +174,8 @@ def main():
         "momentum": 0.9,
         "lr_milestones": [82, 123],
         "lr_gamma": 0.1,
+        "mean": [0.5, 0.5, 0.5],
+        "std": [0.5, 0.5, 0.5],
     }
 
     model_pipeline(project, model_name, model_path, config, device)
