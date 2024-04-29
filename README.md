@@ -1,5 +1,5 @@
-# resnet
-My implementation of the paper "Deep Residual Learning for Image Recognition" in PyTorch
+# Deep Residual Learning for Image Recognition
+This is my implementation of the Residual Network architecture in PyTorch as desccribed in the paper "Deep Residual Learning for Image Recognition"
 
 ## Setup
 ```
