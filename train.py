@@ -11,16 +11,8 @@ import wandb
 from dataloader import get_dataloader
 from resnet import ResNet
 
-# Ensure deterministic behavior
-torch.backends.cudnn.deterministic = True
-torch.manual_seed(0)
-torch.cuda.manual_seed(0)
 
-# Device configuration
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
-
-def make(config):
+def make(config, device):
     """Create model, dataloaders, loss function, optimizer, and scheduler."""
 
     train_transform = transforms.Compose(
@@ -59,13 +51,13 @@ def make(config):
     )
 
 
-def evaluate(model, loader, loss_func):
+def evaluate(model, loader, loss_func, device):
     """Evaluates the model's loss and error on a dataset"""
 
     model.eval()
-    loss_sum = 0.0
+    total_loss = 0.0
+    total_wrong = 0
     with torch.inference_mode():
-        wrong = 0
         for images, labels in loader:
             images, labels = images.to(device), labels.to(device)
 
@@ -73,16 +65,18 @@ def evaluate(model, loader, loss_func):
             outputs = model(images)
             loss_sum += loss_func(outputs, labels) * labels.size(0)
 
-            _, predicted_indices = torch.max(outputs.data, 1)
-            wrong += (predicted_indices != labels).sum().item()
+            _, pred = torch.max(outputs.data, 1)
+            wrong += (pred != labels).sum().item()
 
-    loss = loss_sum / len(loader.dataset)
-    error = wrong / len(loader.dataset)
+    loss = total_loss / len(loader.dataset)
+    error = total_wrong / len(loader.dataset)
 
     return loss, error
 
 
-def train(model, train_loader, test_loader, loss_func, optimizer, scheduler, config):
+def train(
+    model, train_loader, test_loader, loss_func, optimizer, scheduler, config, device
+):
     """Trains the model for the specified number of epochs."""
 
     for epoch in range(config.epochs):
@@ -99,8 +93,8 @@ def train(model, train_loader, test_loader, loss_func, optimizer, scheduler, con
             optimizer.step()
 
         # Log training and testing metrics
-        train_loss, train_error = evaluate(model, train_loader, loss_func)
-        test_loss, test_error = evaluate(model, test_loader, loss_func)
+        train_loss, train_error = evaluate(model, train_loader, loss_func, device)
+        test_loss, test_error = evaluate(model, test_loader, loss_func, device)
         wandb.log(
             {
                 "epoch": epoch,
@@ -115,7 +109,7 @@ def train(model, train_loader, test_loader, loss_func, optimizer, scheduler, con
         scheduler.step()
 
 
-def model_pipeline(project, model_name, config):
+def model_pipeline(project, model_name, model_path, config, device):
     """Trains a model and logs artifacts and metrics."""
 
     with wandb.init(project=project, config=dict(config)) as run:
@@ -129,10 +123,19 @@ def model_pipeline(project, model_name, config):
             loss_func,
             optimizer,
             scheduler,
-        ) = make(config)
+        ) = make(config, device)
 
         # and use them to train the model
-        train(model, train_loader, test_loader, loss_func, optimizer, scheduler, config)
+        train(
+            model,
+            train_loader,
+            test_loader,
+            loss_func,
+            optimizer,
+            scheduler,
+            config,
+            device,
+        )
 
         model_artifact = wandb.Artifact(
             model_name,
@@ -141,14 +144,22 @@ def model_pipeline(project, model_name, config):
         )
 
         # Save model weights
-        torch.save(model.state_dict(), model_name + ".pth")
-        model_artifact.add_file(model_name + ".pth")
-        wandb.save(model_name + ".pth")
+        torch.save(model.state_dict(), model_path)
+        model_artifact.add_file(model_path)
+        wandb.save(model_path)
         run.log_artifact(model_artifact)
 
 
-# Execute training pipeline
-if __name__ == "__main__":
+def main():
+    """Starts a training run"""
+
+    # Ensure deterministic behavior
+    torch.backends.cudnn.deterministic = True
+    torch.manual_seed(0)
+    torch.cuda.manual_seed(0)
+
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
     wandb.login()
 
     hyperparameters = {
@@ -162,4 +173,8 @@ if __name__ == "__main__":
         "lr_gamma": 0.1,
     }
 
-    model_pipeline("resnet", "resnet", hyperparameters)
+    model_pipeline("resnet", "resnet", "./weights/resnet.pth", hyperparameters, device)
+
+
+if __name__ == "__main__":
+    main()

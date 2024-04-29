@@ -170,5 +170,5 @@ data/
 # Experiment tracking files
 wandb/
 
-# Saved model
-*.pth
+# Model weights
+weights/
