@@ -24,9 +24,8 @@ def make(config, device):
             transforms.RandomCrop(32, padding=4),
         ]
     )
-    train_dataloader, test_dataloader = get_dataloader(
-        train_transform, transforms.ToTensor(), config.batch_size
-    )
+    train_dataloader = get_dataloader(train_transform, config.batch_size)
+    test_dataloader = get_dataloader(transforms.ToTensor(), config.batch_size)
 
     model = ResNet(config.n).to(device)
 
