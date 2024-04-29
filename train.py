@@ -63,10 +63,10 @@ def evaluate(model, loader, loss_func, device):
 
             # Forward pass
             outputs = model(images)
-            loss_sum += loss_func(outputs, labels) * labels.size(0)
+            total_loss += loss_func(outputs, labels) * labels.size(0)
 
             _, pred = torch.max(outputs.data, 1)
-            wrong += (pred != labels).sum().item()
+            total_wrong += (pred != labels).sum().item()
 
     loss = total_loss / len(loader.dataset)
     error = total_wrong / len(loader.dataset)
