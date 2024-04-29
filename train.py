@@ -8,8 +8,8 @@ from torch.optim.lr_scheduler import MultiStepLR
 from torchvision import transforms
 import wandb
 
-from dataloader import get_dataloader
-from resnet import ResNet
+from data import get_dataloader
+from modules.resnet import ResNet
 
 
 def make(config, device):
