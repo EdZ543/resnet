@@ -18,14 +18,14 @@ def make(config, device):
     train_transform = transforms.Compose(
         [
             transforms.ToTensor(),
-            # Deviation from paper, as they use per-pixel mean subtraction
-            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
             transforms.RandomHorizontalFlip(),
             transforms.RandomCrop(32, padding=4),
         ]
     )
+    test_transform = transforms.ToTensor()
+
     train_dataloader = get_dataloader(train_transform, config.batch_size)
-    test_dataloader = get_dataloader(transforms.ToTensor(), config.batch_size)
+    test_dataloader = get_dataloader(test_transform, config.batch_size)
 
     model = ResNet(config.n).to(device)
 
@@ -161,7 +161,10 @@ def main():
 
     wandb.login()
 
-    hyperparameters = {
+    project = "resnet"
+    model_name = "resnet"
+    model_path = "./weights/resnet.pth"
+    config = {
         "n": 3,
         "batch_size": 128,
         "learning_rate": 0.1,
@@ -172,7 +175,7 @@ def main():
         "lr_gamma": 0.1,
     }
 
-    model_pipeline("resnet", "resnet", "./weights/resnet.pth", hyperparameters, device)
+    model_pipeline(project, model_name, model_path, config, device)
 
 
 if __name__ == "__main__":
