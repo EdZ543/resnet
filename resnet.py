@@ -22,11 +22,22 @@ class ResidualBlock(nn.Module):
         self.subsample = subsample
 
         if subsample:
-            self.conv1 = nn.Conv2d(num_filters // 2, num_filters, 3, 2, 1)
+            self.conv1 = nn.Conv2d(
+                num_filters // 2,
+                num_filters,
+                kernel_size=3,
+                stride=2,
+                padding=1,
+                bias=False,
+            )
         else:
-            self.conv1 = nn.Conv2d(num_filters, num_filters, 3, 1, 1)
+            self.conv1 = nn.Conv2d(
+                num_filters, num_filters, kernel_size=3, stride=1, padding=1, bias=False
+            )
         self.batch_norm1 = nn.BatchNorm2d(num_filters)
-        self.conv2 = nn.Conv2d(num_filters, num_filters, 3, 1, 1)
+        self.conv2 = nn.Conv2d(
+            num_filters, num_filters, kernel_size=3, stride=1, padding=1, bias=False
+        )
         self.batch_norm2 = nn.BatchNorm2d(num_filters)
 
         self.mp = nn.MaxPool2d(1, 2)
@@ -76,7 +87,7 @@ class ResNet(nn.Module):
     def __init__(self, n):
         super().__init__()
 
-        self.conv1 = nn.Conv2d(3, 16, 3, 1, 1)
+        self.conv1 = nn.Conv2d(3, 16, kernel_size=3, stride=1, padding=1, bias=False)
         self.batch_norm = nn.BatchNorm2d(16)
 
         # Stack of residual blocks with map size 32 and 16 filters
