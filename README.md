@@ -1,5 +1,6 @@
 # Deep Residual Learning for Image Recognition
-This is my implementation of the Residual Network architecture in PyTorch as desccribed in the *Deep Residual Learning for Image Recognition*[^1].
+This is my implementation of the Residual Network architecture in PyTorch as desccribed in the *Deep Residual Learning for Image Recognition*.[^1]
+
 It replicates a portion of their CIFAR-10 experiment, as described in section 4.2.
 
 ## Setup
