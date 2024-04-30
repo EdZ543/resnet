@@ -38,9 +38,7 @@ class ResNet(nn.Module):
         self.fully_connected = nn.Linear(64, 10)
 
         # Initialize weights of fully connected layer
-        nn.init.kaiming_normal_(
-            self.fully_connected.weight, mode="fan_out", nonlinearity="relu"
-        )
+        nn.init.kaiming_normal_(self.fully_connected.weight)
         self.fully_connected.bias.data.zero_()
 
     def forward(self, x):
