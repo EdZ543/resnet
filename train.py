@@ -143,8 +143,8 @@ def main():
         "momentum": 0.9,
         "milestones": [91, 137],
         "gamma": 0.1,
-        "mean": [0.4914, 0.4822, 0.4465],
-        "std": [0.247, 0.243, 0.261],
+        "mean": [0.4918, 0.4918, 0.4918],
+        "std": [0.2469, 0.2469, 0.2469],
     }
 
     with wandb.init(project=project, config=dict(config)) as run:
