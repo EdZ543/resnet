@@ -74,6 +74,7 @@ class ResidualBlock(nn.Module):
         out = self.conv1(x)
         out = self.batch_norm1(out)
         out = F.relu(out)
+
         out = self.conv2(out)
         out = self.batch_norm2(out)
 
@@ -84,4 +85,5 @@ class ResidualBlock(nn.Module):
             out += x
 
         out = F.relu(out)
+
         return out

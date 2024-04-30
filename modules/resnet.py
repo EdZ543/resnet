@@ -41,6 +41,7 @@ class ResNet(nn.Module):
         nn.init.kaiming_normal_(
             self.fully_connected.weight, mode="fan_out", nonlinearity="relu"
         )
+        self.fully_connected.bias.data.zero_()
 
     def forward(self, x):
         """Feed forward step"""
@@ -48,11 +49,14 @@ class ResNet(nn.Module):
         out = self.init_conv(x)
         out = self.batch_norm(out)
         out = F.relu(out)
+
         out = self.stack1(out)
         out = self.stack2(out)
         out = self.stack3(out)
+
         out = self.global_avg_pool(out)
         out = out.view(-1, 64)
         out = self.fully_connected(out)
         out = F.softmax(out, dim=-1)
+
         return out

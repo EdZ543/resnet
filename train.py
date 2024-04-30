@@ -7,7 +7,7 @@ from torch.optim.lr_scheduler import MultiStepLR
 from torchvision import transforms
 import wandb
 
-from data import get_dataloader
+from data import get_dataloaders
 from modules import ResNet
 
 
@@ -29,8 +29,10 @@ def make(config, device):
         ]
     )
 
-    train_dataloader = get_dataloader(True, train_transform, config.batch_size)
-    test_dataloader = get_dataloader(False, test_transform, config.batch_size)
+    pin_memory = device == "cuda:0"
+    train_dataloader, test_dataloader = get_dataloaders(
+        train_transform, test_transform, config.batch_size, True, pin_memory
+    )
 
     model = ResNet(config.n).to(device)
 
@@ -113,8 +115,15 @@ def train(
         scheduler.step()
 
 
-def model_pipeline(project, model_name, model_path, config, device):
+def model_pipeline(project, model_name, model_path, config):
     """Trains a model and logs artifacts and metrics."""
+
+    # Ensure deterministic behavior
+    torch.backends.cudnn.deterministic = True
+    torch.manual_seed(0)
+    torch.cuda.manual_seed(0)
+
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     with wandb.init(project=project, config=dict(config)) as run:
         config = wandb.config
@@ -157,13 +166,6 @@ def model_pipeline(project, model_name, model_path, config, device):
 def main():
     """Starts a training run"""
 
-    # Ensure deterministic behavior
-    torch.backends.cudnn.deterministic = True
-    torch.manual_seed(0)
-    torch.cuda.manual_seed(0)
-
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
     wandb.login()
 
     project = "resnet"
@@ -183,7 +185,7 @@ def main():
         "std": [0.2469, 0.2469, 0.2469],
     }
 
-    model_pipeline(project, model_name, model_path, config, device)
+    model_pipeline(project, model_name, model_path, config)
 
 
 if __name__ == "__main__":
