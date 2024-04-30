@@ -30,7 +30,7 @@ def make(data_dir, config, device):
     )
 
     pin_memory = device == "cuda:0"
-    train_dataloader, test_dataloader = get_dataloaders(
+    train_dataloader, val_dataloader, test_dataloader = get_dataloaders(
         data_dir, train_transform, test_transform, config.batch_size, True, pin_memory
     )
 
@@ -51,6 +51,7 @@ def make(data_dir, config, device):
     return (
         model,
         train_dataloader,
+        val_dataloader,
         test_dataloader,
         loss_func,
         optimizer,
@@ -82,7 +83,7 @@ def evaluate(model, loader, loss_func, device):
 
 
 def train(
-    model, train_loader, test_loader, loss_func, optimizer, scheduler, config, device
+    model, train_loader, val_loader, loss_func, optimizer, scheduler, config, device
 ):
     """Trains the model for the specified number of epochs."""
 
@@ -101,14 +102,14 @@ def train(
 
         # Log training and testing metrics
         train_loss, train_error = evaluate(model, train_loader, loss_func, device)
-        test_loss, test_error = evaluate(model, test_loader, loss_func, device)
+        val_loss, val_error = evaluate(model, val_loader, loss_func, device)
         wandb.log(
             {
                 "epoch": epoch,
                 "train/error": train_error,
                 "train/loss": train_loss,
-                "test/error": test_error,
-                "test/loss": test_loss,
+                "validation/error": val_error,
+                "validation/loss": val_loss,
             }
         )
 
@@ -153,6 +154,7 @@ def main():
         (
             model,
             train_loader,
+            val_loader,
             test_loader,
             loss_func,
             optimizer,
@@ -163,13 +165,17 @@ def main():
         train(
             model,
             train_loader,
-            test_loader,
+            val_loader,
             loss_func,
             optimizer,
             scheduler,
             config,
             device,
         )
+
+        # Evaluate the model on the test set
+        _, test_error = evaluate(model, test_loader, loss_func, device)
+        wandb.log({"test/error": test_error})
 
         # Save model weights
         model_artifact = wandb.Artifact(
