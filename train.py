@@ -3,7 +3,6 @@ Main training script.
 """
 
 import torch
-from torch import nn
 from torch.optim.lr_scheduler import MultiStepLR
 from torchvision import transforms
 import wandb
