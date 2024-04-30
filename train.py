@@ -29,8 +29,9 @@ def make(data_dir, config, device):
         ]
     )
 
+    pin_memory = device == "cuda:0"
     train_dataloader, test_dataloader = get_dataloaders(
-        data_dir, train_transform, test_transform, config.batch_size, True
+        data_dir, train_transform, test_transform, config.batch_size, True, pin_memory
     )
 
     model = ResNet(config.n)
@@ -119,18 +120,19 @@ def main():
     """Starts a training run"""
 
     # Ensure deterministic behavior
-    torch.backends.cudnn.deterministic = True
     torch.manual_seed(0)
     torch.cuda.manual_seed(0)
+    torch.backends.cudnn.deterministic = True
 
     # Use GPU if available
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+    wandb.login()
 
     project = "resnet"
     data_dir = "./data"
     model_name = "resnet"
     model_path = "./weights/resnet.pth"
-
     config = {
         "n": 3,
         "batch_size": 128,
@@ -143,8 +145,6 @@ def main():
         "mean": [0.4918687901200927, 0.49185976472299225, 0.4918583862227116],
         "std": [0.24697121702736, 0.24696766978537033, 0.2469719877121087],
     }
-
-    wandb.login()
 
     with wandb.init(project=project, config=dict(config)) as run:
         config = wandb.config
