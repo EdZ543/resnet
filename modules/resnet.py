@@ -37,10 +37,6 @@ class ResNet(nn.Module):
         self.global_avg_pool = nn.AvgPool2d(8)
         self.fully_connected = nn.Linear(64, 10)
 
-        # Initialize weights of fully connected layer
-        nn.init.kaiming_normal_(self.fully_connected.weight)
-        self.fully_connected.bias.data.zero_()
-
     def forward(self, x):
         """Feed forward step"""
 
@@ -55,6 +51,6 @@ class ResNet(nn.Module):
         out = self.global_avg_pool(out)
         out = out.view(-1, 64)
         out = self.fully_connected(out)
-        out = F.softmax(out, dim=-1)
+        out = F.log_softmax(out, dim=-1)
 
         return out
