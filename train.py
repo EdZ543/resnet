@@ -3,7 +3,7 @@ Main training script.
 """
 
 import torch
-from torch.optim.lr_scheduler import MultiStepLR
+from torch import nn, optim
 from torchvision import transforms
 import wandb
 
@@ -11,7 +11,7 @@ from data import get_dataloaders
 from modules import ResNet
 
 
-def make(config, device):
+def make(data_dir, config, device):
     """Create model, dataloaders, loss function, optimizer, and scheduler."""
 
     train_transform = transforms.Compose(
@@ -29,22 +29,22 @@ def make(config, device):
         ]
     )
 
-    pin_memory = device == "cuda:0"
     train_dataloader, test_dataloader = get_dataloaders(
-        train_transform, test_transform, config.batch_size, True, pin_memory
+        data_dir, train_transform, test_transform, config.batch_size, True
     )
 
-    model = ResNet(config.n).to(device)
+    model = ResNet(config.n)
+    model.to(device)
 
-    loss_func = torch.nn.NLLLoss()
-    optimizer = torch.optim.SGD(
+    loss_func = nn.NLLLoss()
+    optimizer = optim.SGD(
         model.parameters(),
-        lr=config.learning_rate,
+        lr=config.lr,
         weight_decay=config.weight_decay,
         momentum=config.momentum,
     )
-    scheduler = MultiStepLR(
-        optimizer, milestones=config.lr_milestones, gamma=config.lr_gamma
+    scheduler = optim.lr_scheduler.MultiStepLR(
+        optimizer, milestones=config.milestones, gamma=config.gamma
     )
 
     return (
@@ -115,15 +115,36 @@ def train(
         scheduler.step()
 
 
-def model_pipeline(project, model_name, model_path, config):
-    """Trains a model and logs artifacts and metrics."""
+def main():
+    """Starts a training run"""
 
     # Ensure deterministic behavior
     torch.backends.cudnn.deterministic = True
     torch.manual_seed(0)
     torch.cuda.manual_seed(0)
 
+    # Use GPU if available
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+    project = "resnet"
+    data_dir = "./data"
+    model_name = "resnet"
+    model_path = "./weights/resnet.pth"
+
+    config = {
+        "n": 3,
+        "batch_size": 128,
+        "lr": 0.1,
+        "epochs": 164,
+        "weight_decay": 0.0001,
+        "momentum": 0.9,
+        "milestones": [82, 123],
+        "gamma": 0.1,
+        "mean": [0.4918687901200927, 0.49185976472299225, 0.4918583862227116],
+        "std": [0.24697121702736, 0.24696766978537033, 0.2469719877121087],
+    }
+
+    wandb.login()
 
     with wandb.init(project=project, config=dict(config)) as run:
         config = wandb.config
@@ -136,7 +157,7 @@ def model_pipeline(project, model_name, model_path, config):
             loss_func,
             optimizer,
             scheduler,
-        ) = make(config, device)
+        ) = make(data_dir, config, device)
 
         # and use them to train the model
         train(
@@ -150,42 +171,17 @@ def model_pipeline(project, model_name, model_path, config):
             device,
         )
 
+        # Save model weights
         model_artifact = wandb.Artifact(
             model_name,
             type="model",
             metadata=dict(config),
         )
 
-        # Save model weights
         torch.save(model.state_dict(), model_path)
         model_artifact.add_file(model_path)
         wandb.save(model_path)
         run.log_artifact(model_artifact)
-
-
-def main():
-    """Starts a training run"""
-
-    wandb.login()
-
-    project = "resnet"
-    model_name = "resnet"
-    model_path = "./weights/resnet.pth"
-
-    config = {
-        "n": 3,
-        "batch_size": 128,
-        "learning_rate": 0.1,
-        "epochs": 164,
-        "weight_decay": 0.0001,
-        "momentum": 0.9,
-        "lr_milestones": [82, 123],
-        "lr_gamma": 0.1,
-        "mean": [0.4918, 0.4918, 0.4918],
-        "std": [0.2469, 0.2469, 0.2469],
-    }
-
-    model_pipeline(project, model_name, model_path, config)
 
 
 if __name__ == "__main__":
