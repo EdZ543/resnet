@@ -169,4 +169,4 @@ data/
 wandb/
 
 # Model weights
-weights/
+model.pth

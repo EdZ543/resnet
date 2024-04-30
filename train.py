@@ -132,7 +132,7 @@ def main():
     project = "resnet"
     data_dir = "./data"
     model_name = "resnet"
-    model_path = "./weights/resnet.pth"
+    model_path = "model.pth"
     config = {
         "n": 3,
         "batch_size": 128,
