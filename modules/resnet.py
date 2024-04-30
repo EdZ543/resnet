@@ -37,6 +37,11 @@ class ResNet(nn.Module):
         self.global_avg_pool = nn.AvgPool2d(8)
         self.fully_connected = nn.Linear(64, 10)
 
+        # Initialize weights
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight, mode="fan_out", nonlinearity="relu")
+
     def forward(self, x):
         """Feed forward step"""
 
