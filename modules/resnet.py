@@ -38,7 +38,9 @@ class ResNet(nn.Module):
         self.fully_connected = nn.Linear(64, 10)
 
         # Initialize weights
-        self.fully_connected.bias.data.zero_()
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight, mode="fan_out", nonlinearity="relu")
 
     def forward(self, x):
         """Feed forward step"""
