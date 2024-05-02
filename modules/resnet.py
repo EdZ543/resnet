@@ -6,6 +6,11 @@ import torch.nn.functional as F
 from .residual_block import ResidualBlock
 
 
+def init_weights(m):
+    if isinstance(m, nn.Conv2d) or isinstance(m, nn.Linear):
+        nn.init.kaiming_normal_(m.weight)
+
+
 class ResNet(nn.Module):
     """ResNet model, as described in CIFAR-10 section of the paper."""
 
@@ -38,9 +43,7 @@ class ResNet(nn.Module):
         self.fully_connected = nn.Linear(64, 10)
 
         # Initialize weights
-        for m in self.modules():
-            if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal_(m.weight, mode="fan_out", nonlinearity="relu")
+        self.apply(init_weights)
 
     def forward(self, x):
         """Feed forward step"""
@@ -54,8 +57,7 @@ class ResNet(nn.Module):
         out = self.stack3(out)
 
         out = self.global_avg_pool(out)
-        out = out.view(-1, 64)
+        out = out.view(out.size(0), -1)
         out = self.fully_connected(out)
-        out = F.log_softmax(out, dim=-1)
 
         return out

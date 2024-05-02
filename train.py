@@ -16,10 +16,10 @@ def make(data_dir, config, device):
 
     train_transform = transforms.Compose(
         [
-            transforms.ToTensor(),
-            transforms.Normalize(config.mean, config.std),
             transforms.RandomHorizontalFlip(),
             transforms.RandomCrop(32, padding=4),
+            transforms.ToTensor(),
+            transforms.Normalize(config.mean, config.std),
         ]
     )
     test_transform = transforms.Compose(
@@ -37,7 +37,7 @@ def make(data_dir, config, device):
     model = ResNet(config.n)
     model.to(device)
 
-    loss_func = nn.NLLLoss()
+    loss_func = nn.CrossEntropyLoss()
     optimizer = optim.SGD(
         model.parameters(),
         lr=config.lr,
@@ -143,8 +143,8 @@ def main():
         "momentum": 0.9,
         "milestones": [91, 137],
         "gamma": 0.1,
-        "mean": [0.4918, 0.4918, 0.4918],
-        "std": [0.2469, 0.2469, 0.2469],
+        "mean": [0.485, 0.456, 0.406],
+        "std": [0.229, 0.224, 0.225],
     }
 
     with wandb.init(project=project, config=dict(config)) as run:

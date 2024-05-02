@@ -44,11 +44,6 @@ class ResidualBlock(nn.Module):
 
         self.mp = nn.MaxPool2d(1, 2)
 
-        # Initialize weights
-        for m in self.modules():
-            if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal_(m.weight, mode="fan_out", nonlinearity="relu")
-
     def increase_dim(self, x):
         """
         Transforms input for shortcut connections across dimensions.
