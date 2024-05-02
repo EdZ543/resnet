@@ -170,3 +170,6 @@ wandb/
 
 # Model weights
 model.pth
+
+# CSV files
+*.csv
