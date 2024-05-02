@@ -37,7 +37,7 @@ def make(data_dir, config, device):
     model = ResNet(config.n)
     model.to(device)
 
-    loss_func = nn.CrossEntropyLoss()
+    loss_func = nn.NLLLoss2d()
     optimizer = optim.SGD(
         model.parameters(),
         lr=config.lr,

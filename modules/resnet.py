@@ -60,5 +60,6 @@ class ResNet(nn.Module):
         out = self.global_avg_pool(out)
         out = out.view(out.size(0), -1)
         out = self.fully_connected(out)
+        out = F.log_softmax(out, dim=1)
 
         return out
