@@ -7,6 +7,7 @@ from .residual_block import ResidualBlock
 
 
 def init_weights(m):
+    """Initialize weights of the model"""
     if isinstance(m, nn.Conv2d) or isinstance(m, nn.Linear):
         nn.init.kaiming_normal_(m.weight)
 
