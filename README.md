@@ -17,7 +17,7 @@ This mapping is easier to optimize, as it has a reference to the original input 
 This formulation can be achieved with "shortcut connections". Essentially, the unaltered inputs to one layer are added to the ouputs of the next layer.
 
 <div align='center'>
-    <img src='/images/projects/resblock.png' width='400px'>
+    <img src='/assets/resblock.png' width='400px'>
 </div>
 
 Residual networks can then be constructed by stacking several of these base residual blocks. I specifically used the architecture described in their experiment with the CIFAR-10 dataset.
@@ -27,13 +27,13 @@ Residual networks can then be constructed by stacking several of these base resi
 The following graph is from Figure 6 of the paper, which shows training metrics on the CIFAR-10 dataset. Dashed lines denote training error, and bold lines denote validation error.
 
 <div align='center'>
-    <img src='/images/projects/resnet-training-metrics-paper.png' width='500px'>
+    <img src='/assets/resnet-training-metrics-paper.png' width='500px'>
 </div>
 
 The following graph uses my results.
 
 <div align='center'>
-    <img src='/images/projects/resnet-training-metrics-eddie.png' width='500px'>
+    <img src='/assets/resnet-training-metrics-eddie.png' width='500px'>
 </div>
 
 Furthermore, this table compares classification error on the CIFAR-10 test set.
